@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Công cụ Tra cứu Nhanh Diện Quản lý PCCC</title>
+    <link rel="icon" href="./favicon.svg" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        #result-section { display: none; animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .cta-button { transition: all 0.2s ease-in-out; }
+        .cta-button:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        /* Style cho các lựa chọn quy mô */
+        .quy-mo-option {
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .quy-mo-option:hover {
+            background-color: #fef2f2;
+        }
+        .quy-mo-option input:checked + label {
+            border-color: #ef4444;
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-8 md:p-12">
+        <!-- Step 1: Introduction -->
+        <div id="intro-section">
+            <div class="text-center">
+                <i data-lucide="shield-question" class="w-16 h-16 mx-auto text-red-500 mb-4"></i>
+                <h1 class="text-3xl font-bold text-gray-900">Kiểm tra Nhanh Diện Quản lý PCCC</h1>
+                <p class="text-gray-600 mt-4">Trả lời một vài câu hỏi đơn giản để xác định cơ sở của bạn thuộc diện quản lý nào theo quy định mới nhất.</p>
+            </div>
+
+            <div class="mt-8">
+                <div class="space-y-6">
+                    <div>
+                        <label for="loaiHinh" class="block text-lg font-medium text-gray-700 mb-2">1. Chọn loại hình cơ sở:</label>
+                        <select id="loaiHinh" class="block w-full p-3 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500">
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <!-- Khu vực Quy mô sẽ được điền động -->
+                    <div id="quyMoSection">
+                        <label class="block text-lg font-medium text-gray-700 mb-2">2. Chọn quy mô của cơ sở:</label>
+                        <div id="quyMoOptionsContainer" class="space-y-2">
+                            <!-- Radio buttons will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 text-center">
+                    <button id="check-btn" class="cta-button bg-red-600 text-white font-bold px-10 py-4 rounded-lg text-lg hover:bg-red-700">
+                        Xem kết quả phân loại
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Result -->
+        <div id="result-section" class="text-center">
+             <i data-lucide="award" class="w-16 h-16 mx-auto text-green-500 mb-4"></i>
+             <h2 class="text-2xl font-bold text-gray-900">Kết quả Phân loại</h2>
+             <div class="mt-4 bg-green-50 border-l-4 border-green-500 p-6 rounded-lg text-left">
+                <p class="text-lg">Dựa trên thông tin bạn cung cấp, cơ sở của bạn thuộc:</p>
+                <p id="result-text" class="text-3xl font-extrabold text-green-700 mt-2"></p>
+                <p class="text-gray-600 mt-2"><strong>Tiêu chí:</strong> <span id="result-criteria"></span></p>
+                <p class="text-gray-600 mt-1"><strong>Căn cứ pháp lý:</strong> <span id="result-legal"></span></p>
+             </div>
+             
+             <!-- CTA Section -->
+             <div class="mt-8 p-6 bg-gray-50 rounded-lg">
+                 <h3 class="font-bold text-xl">Bạn cần một công cụ để quản lý?</h3>
+                 <p class="text-gray-600 mt-2">Việc quản lý hồ sơ, phương tiện, và thực hiện báo cáo theo đúng phụ lục này có thể rất phức tạp. Hãy để chúng tôi giúp bạn!</p>
+                 <a href="https://gioithieu.antoanchay.io.vn" class="mt-4 inline-block cta-button bg-red-600 text-white font-bold px-8 py-3 rounded-lg text-base hover:bg-red-700">
+                     Tìm hiểu về giải pháp An Toàn PCCC
+                 </a>
+             </div>
+        </div>
+    </div>
+    
+    <script>
+        const loaiHinhData = [
+  {
+    "code": "GR01",
+    "ten": "Nhà chung cư, Nhà ở tập thể",
+    "can_cu": "Điểm 1, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Cao từ 7 tầng trở lên hoặc có tổng diện tích sàn từ 3.000 m² trở lên.",
+    "nhom_II": "Cao từ 5 đến dưới 7 tầng hoặc có tổng diện tích sàn từ 1.000 m² đến dưới 3.000 m².",
+    "nhom_III": "Cao dưới 5 tầng và có tổng diện tích sàn dưới 1.000 m²."
+  },
+  {
+    "code": "GR02",
+    "ten": "Nhà trẻ, Trường mẫu giáo, Trường mầm non",
+    "can_cu": "Điểm 2, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Có từ 150 cháu trở lên hoặc tổng diện tích sàn từ 2.000 m² trở lên.",
+    "nhom_II": "Có từ 50 cháu đến dưới 150 cháu hoặc tổng diện tích sàn từ 500 m² đến dưới 2.000 m².",
+    "nhom_III": "Có dưới 50 cháu và tổng diện tích sàn dưới 500 m²."
+  },
+  {
+    "code": "GR03",
+    "ten": "Trường tiểu học, Trường trung học cơ sở, Trường trung học phổ thông, Trường phổ thông có nhiều cấp học, Trường đại học, Trường cao đẳng, Trường trung học chuyên nghiệp, Trường dạy nghề, Trường công nhân kỹ thuật, Cơ sở giáo dục khác theo quy định của pháp luật về giáo dục",
+    "can_cu": "Điểm 2, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Cao từ 5 tầng trở lên hoặc có tổng diện tích sàn từ 3.000 m² trở lên.",
+    "nhom_II": "Cao từ 3 đến dưới 5 tầng hoặc có tổng diện tích sàn từ 1.500 m² đến dưới 3.000 m².",
+    "nhom_III": "Cao dưới 3 tầng và có tổng diện tích sàn dưới 1.500 m²."
+  },
+  {
+    "code": "GR04",
+    "ten": "Cơ sở nghiên cứu vũ trụ, Trung tâm cơ sở dữ liệu chuyên ngành, Cơ sở nghiên cứu chuyên ngành khác",
+    "can_cu": "Điểm 3, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Cao từ 5 tầng trở lên hoặc có tổng diện tích sàn từ 3.000 m² trở lên.",
+    "nhom_II": "Cao từ 3 đến dưới 5 tầng hoặc có tổng diện tích sàn từ 1.500 m² đến dưới 3.000 m².",
+    "nhom_III": "Cao 2 tầng và có tổng diện tích sàn từ 300m2 đến 1.500 m²."
+  },
+  {
+    "code": "GR05",
+    "ten": "Bệnh viện",
+    "can_cu": "Điểm 4, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Tổng số giường bệnh từ 250 giường trở lên.",
+    "nhom_II": "Tổng số giường bệnh dưới 250 giường.",
+    "nhom_III": ""
+  },
+  {
+    "code": "GR06",
+    "ten": "Phòng khám (đa khoa hoặc chuyên khoa), Trạm y tế, Nhà hộ sinh, Cơ sở phòng chống dịch bệnh, Cơ sở nghiên cứu, thí nghiệm chuyên ngành y tế, Nhà điều dưỡng, Phục hồi chức năng, Chỉnh hình, Dưỡng lão, Cơ sở y tế khác theo Luật Khám bệnh, chữa bệnh",
+    "can_cu": "Điểm 4, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Cao từ 5 tầng trở lên hoặc có tổng diện tích sàn từ 2.000 m² trở lên.",
+    "nhom_II": "Cao từ 3 đến dưới 5 tầng hoặc có tổng diện tích sàn từ 300 m² đến dưới 2.000 m².",
+    "nhom_III": "Cao 2 tầng và có tổng diện tích sàn từ 50 m2 đến 300 m²."
+  },
+  {
+    "code": "GR07",
+    "ten": "Sân vận động",
+    "can_cu": "Điểm 5, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Có sức chứa của khán đài từ 5.000 chỗ ngồi trở lên.",
+    "nhom_II": "Có sức chứa của khán đài từ 2.000 chỗ ngồi đến dưới 5.000 chỗ ngồi.",
+    "nhom_III": "Có dưới 2.000 chỗ ngồi."
+  },
+  {
+    "code": "GR08",
+    "ten": "Nhà thi đấu các môn thể thao, Nhà tập luyện các môn thể thao",
+    "can_cu": "Điểm 5, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Có từ 5.000 chỗ ngồi trở lên hoặc tổng diện tích sàn từ 5.000 m² trở lên.",
+    "nhom_II": "Có từ 1.000 chỗ ngồi đến dưới 5.000 chỗ ngồi hoặc tổng diện tích sàn từ 1.000 m² đến dưới 5.000 m².",
+    "nhom_III": "Có dưới 1.000 chỗ ngồi."
+  },
+  {
+    "code": "GR09",
+    "ten": "Bể bơi, Sân thi đấu các môn thể thao có khán đài, Trường đua, Trường bắn",
+    "can_cu": "Điểm 5, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Có từ 5.000 chỗ ngồi trở lên hoặc tổng diện tích sàn từ 5.000 m² trở lên.",
+    "nhom_II": "Có từ 1.000 chỗ ngồi đến dưới 5.000 chỗ ngồi hoặc tổng diện tích sàn từ 1.000 m² đến dưới 5.000 m².",
+    "nhom_III": "Có dưới 1.000 chỗ ngồi và tổng diện tích sàn dưới 1.000 m²."
+  },
+  {
+    "code": "GR10",
+    "ten": "Cơ sở thể thao khác theo Luật Thể dục, thể thao",
+    "can_cu": "Điểm 5, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Có từ 5.000 chỗ ngồi trở lên hoặc tổng diện tích sàn từ 5.000 m² trở lên.",
+    "nhom_II": "Có từ 1.000 chỗ ngồi đến dưới 5.000 chỗ ngồi hoặc tổng diện tích sàn từ 1.000 m² đến dưới 5.000 m².",
+    "nhom_III": "Cao 2 tầng và có tổng diện tích sàn từ 50 m² đến dưới 1000 m²và có dưới 1.000 chỗ ngồi."
+  },
+  {
+    "code": "GR11",
+    "ten": "Nhà hát, Rạp chiếu phim, Rạp xiếc",
+    "can_cu": "Điểm 6, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Có từ 300 chỗ ngồi trở lên.",
+    "nhom_II": "Có dưới 300 chỗ ngồi.",
+    "nhom_III": ""
+  },
+  {
+    "code": "GR12",
+    "ten": "Trung tâm hội nghị, Nhà văn hóa",
+    "can_cu": "Điểm 7, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Cao từ 5 tầng trở lên hoặc có tổng diện tích sàn từ 3.000 m² trở lên.",
+    "nhom_II": "Cao từ 3 đến dưới 5 tầng hoặc có tổng diện tích sàn từ 500 m² đến dưới 3.000 m².",
+    "nhom_III": "có từ 100 chỗ ngồi trở lên và cao dưới 3 tầng và có tổng diện tích sàn dưới 500 m²."
+  },
+  {
+    "code": "GR13",
+    "ten": "Bảo tàng, Thư viện, Nhà trưng bày, Nhà triển lãm",
+    "can_cu": "Điểm 7, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Cao từ 5 tầng trở lên hoặc có tổng diện tích sàn từ 3.000 m² trở lên.",
+    "nhom_II": "Cao từ 3 đến dưới 5 tầng hoặc có tổng diện tích sàn từ 500 m² đến dưới 3.000 m².",
+    "nhom_III": "Cao dưới 3 tầng và có tổng diện tích sàn dưới 500 m²"
+  },
+  {
+    "code": "GR14",
+    "ten": "Thủy cung, Cơ sở kinh doanh dịch vụ karaoke, Vũ trường, Cơ sở kinh doanh dịch vụ vui chơi, giải trí",
+    "can_cu": "Điểm 8, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Cao từ 4 tầng trở lên hoặc có tổng diện tích sàn từ 1.000 m² trở lên.",
+    "nhom_II": "Cao từ 2 đến dưới 4 tầng hoặc có tổng diện tích sàn từ 300 m² đến dưới 1.000 m².",
+    "nhom_III": "Cao dưới 2 tầng và có tổng diện tích sàn dưới 300 m²."
+  },
+  {
+    "code": "GR15",
+    "ten": "Cơ sở biểu diễn nghệ thuật, Hoạt động văn hóa",
+    "can_cu": "Điểm 8, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Cao từ 4 tầng trở lên hoặc có tổng diện tích sàn từ 1.000 m² trở lên.",
+    "nhom_II": "Cao từ 2 đến dưới 4 tầng hoặc có tổng diện tích sàn từ 300 m² đến dưới 1.000 m².",
+    "nhom_III": "Có tổng diện tích sàn từ 50m2 và cao dưới 2 tầng và có tổng diện tích sàn dưới 300 m²."
+  },
+  {
+    "code": "GR16",
+    "ten": "Cơ sở tôn giáo",
+    "can_cu": "Điểm 9, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Có tổng diện tích sàn từ 3.000 m² trở lên.",
+    "nhom_II": "Có tổng diện tích sàn từ 500 m² đến dưới 3.000 m².",
+    "nhom_III": "Có tổng diện tích sàn dưới 500 m²."
+  },
+  {
+    "code": "GR17",
+    "ten": "Cơ sở tín ngưỡng (trừ nhà thờ dòng họ)",
+    "can_cu": "Điểm 9, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Có tổng diện tích sàn từ 3.000 m² trở lên.",
+    "nhom_II": "Có tổng diện tích sàn từ 500 m² đến dưới 3.000 m².",
+    "nhom_III": "Cao từ 2 tầng và có tổng diện tích sàn từ 100 m² đến dưới 500 m²."
+  },
+  {
+    "code": "GR18",
+    "ten": "Công trình di tích lịch sử - văn hóa cấp tỉnh trở lên",
+    "can_cu": "Điểm 9, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Cấp quốc gia đặc biệt.",
+    "nhom_II": "Cấp quốc gia.",
+    "nhom_III": "Cấp tỉnh"
+  },
+  {
+    "code": "GR19",
+    "ten": "Chợ, Trung tâm thương mại, Siêu thị",
+    "can_cu": "Điểm 10, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Có tổng diện tích sàn từ 2.000 m² trở lên.",
+    "nhom_II": "Có tổng diện tích sàn từ 300 m² đến dưới 2.000 m².",
+    "nhom_III": "Có tổng diện tích sàn dưới 300 m2"
+  },
+  {
+    "code": "GR20",
+    "ten": "Cơ sở kinh doanh dịch vụ ăn uống, Cơ sở kinh doanh dịch vụ khác theo quy định của pháp luật",
+    "can_cu": "Điểm 11, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Có tổng diện tích sàn từ 3.000 m² trở lên.",
+    "nhom_II": "Có tổng diện tích sàn từ 300 m² đến dưới 3.000 m².",
+    "nhom_III": "Có diện tích phục vụ kinh doanh từ 100 m2 trở lên và diện tích san dưới 300 m²."
+  },
+  {
+    "code": "GR21",
+    "ten": "Cơ sở kinh doanh hàng hóa dễ cháy",
+    "can_cu": "Điểm 2, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Có tổng diện tích sàn từ 3.000 m² trở lên.",
+    "nhom_II": "Có tổng diện tích sàn từ 200 m² đến dưới 3.000 m².",
+    "nhom_III": "Có tổng diện tích phục vụ kinh doanh từ 30 m² trở lên và tổng diện tích sàn dưới 200 m²."
+  },
+  {
+    "code": "GR22",
+    "ten": "Cơ sở kinh doanh hàng hóa khó cháy, Hàng hóa không cháy đựng trong bao bì dễ cháy",
+    "can_cu": "Điểm 12, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Có tổng diện tích sàn từ 5.000 m² trở lên.",
+    "nhom_II": "Có tổng diện tích sàn từ 1.000 m² đến dưới 5.000 m².",
+    "nhom_III": "Có diện tích phục vụ kinh doanh từ 300 m² trở lên và tổng diện tích sàn dưới 1.000 m²."
+  },
+  {
+    "code": "GR23",
+    "ten": "Cơ sở kinh doanh khí đốt",
+    "can_cu": "Điểm 13, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Có tổng lượng khí đốt tồn chứa trên 500 kg.",
+    "nhom_II": "",
+    "nhom_III": "CÓ tổng lượng khí đốt tồn chứa dưới 500 kg."
+  },
+  {
+    "code": "GR24",
+    "ten": "Khách sạn, Nhà khách, Nhà nghỉ",
+    "can_cu": "Điểm 14, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Cao từ 7 tầng trở lên hoặc có tổng diện tích sàn từ 3.000 m² trở lên.",
+    "nhom_II": "Cao từ 3 đến dưới 7 tầng hoặc có tổng diện tích sàn từ 500 m² đến dưới 3.000 m².",
+    "nhom_III": "Cao dưới 3 tầng và có tổng diện tích sàn dưới 500 m²"
+  },
+  {
+    "code": "GR25",
+    "ten": "Cơ sở nghỉ dưỡng, Cơ sở dịch vụ lưu trú khác",
+    "can_cu": "Điểm 14, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Cao từ 7 tầng trở lên hoặc có tổng diện tích sàn từ 3.000 m² trở lên.",
+    "nhom_II": "Cao từ 3 đến dưới 7 tầng hoặc có tổng diện tích sàn từ 500 m² đến dưới 3.000 m².",
+    "nhom_III": "Cao 2 tầng và có tổng diện tích sàn từ 100m2 đến 500 m²."
+  },
+  {
+    "code": "GR26",
+    "ten": "Bưu điện",
+    "can_cu": "Điểm 15, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Cao từ 7 tầng trở lên hoặc có tổng diện tích sàn từ 3.000 m² trở lên.",
+    "nhom_II": "Cao từ 3 đến dưới 7 tầng hoặc có tổng diện tích sàn từ 500 m² đến dưới 3.000 m².",
+    "nhom_III": "Cao dưới 2 tầng và có tổng diện tích sàn dưới 500 m²."
+  },
+  {
+    "code": "GR27",
+    "ten": "Bưu cục, Cơ sở cung cấp dịch vụ bưu chính, Viễn thông khác",
+    "can_cu": "Điểm 15, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Cao từ 7 tầng trở lên hoặc có tổng diện tích sàn từ 3.000 m² trở lên.",
+    "nhom_II": "Cao từ 3 đến dưới 7 tầng hoặc có tổng diện tích sàn từ 500 m² đến dưới 3.000 m².",
+    "nhom_III": "Cao 2 tầng và có tổng diện tích sàn từ 100m2 đến 500 m"
+  },
+  {
+    "code": "GR28",
+    "ten": "Trụ sở làm việc của cơ quan nhà nước",
+    "can_cu": "Điểm 16, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Cao từ 7 tầng trở lên hoặc có tổng diện tích sàn từ 3.000 m² trở lên.",
+    "nhom_II": "Cao từ 3 đến dưới 7 tầng hoặc có tổng diện tích sàn từ 500 m² đến dưới 3.000 m².",
+    "nhom_III": "Cao dưới 3 tầng và có tổng diện tích sàn dưới 500 m²."
+  },
+  {
+    "code": "GR29",
+    "ten": "Nhà làm việc của doanh nghiệp, Nhà làm việc của tổ chức chính trị, xã hội, Nhà đa năng, Nhà hỗn hợp (trừ nhà ở kết hợp SXKD)",
+    "can_cu": "Điểm 16, 17 Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Cao từ 7 tầng trở lên hoặc có tổng diện tích sàn từ 3.000 m² trở lên.",
+    "nhom_II": "Cao từ 3 đến dưới 7 tầng hoặc có tổng diện tích sàn từ 500 m² đến dưới 3.000 m².",
+    "nhom_III": "Cao 2 tầng và có tổng diện tích sàn từ 100 m² đến dưới 500 m²"
+  },
+  {
+    "code": "GR30",
+    "ten": "Cửa hàng xăng dầu, Nhà máy lọc dầu, Nhà máy hóa dầu, Nhà máy lọc, hóa dầu, Nhà máy chế biến khí, Nhà máy sản xuất nhiên liệu sinh học, Kho chứa dầu mỏ, Kho chứa sản phẩm dầu mỏ, Kho chứa khí hóa lỏng, Trạm chiết nạp khí hóa lỏng, Trạm phân phối khí đốt, Nhà máy điện, Kho dự trữ quốc gia, Nhà máy nước, Nhà máy xử lý chất thải, Nhà ga hành khách (cảng hàng không), Nhà khách phục vụ ngoại giao, Nhà ga hàng hóa (cảng hàng không), Nhà kỹ thuật máy bay, Đài kiểm soát không lưu, Cảng cạn, Cơ sở hạt nhân",
+    "can_cu": "Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Không phụ thuộc quy mô.",
+    "nhom_II": "",
+    "nhom_III": ""
+  },
+  {
+    "code": "GR31",
+    "ten": "Trạm biến áp (điện áp từ 110 kV trở lên)",
+    "can_cu": "Điểm 19, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Điện áp 500 kV.",
+    "nhom_II": "Điện áp 110 kV và 220 kV.",
+    "nhom_III": ""
+  },
+  {
+    "code": "GR32",
+    "ten": "Cơ sở sản xuất vật liệu nổ, Cơ sở sản xuất tiền chất thuốc nổ công nghiệp, Cơ sở sản xuất vũ khí, công cụ hỗ trợ, Kho cố định chứa vật liệu nổ, Kho cố định chứa tiền chất thuốc nổ công nghiệp, Kho cố định chứa vũ khí, công cụ hỗ trợ",
+    "can_cu": "Điểm 20, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Không phụ thuộc quy mô.",
+    "nhom_II": "",
+    "nhom_III": ""
+  },
+  {
+    "code": "GR33",
+    "ten": "Cơ sở SXCN hạng nguy hiểm cháy nổ A, B",
+    "can_cu": "Điểm 21, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Có khối tích từ 7.000 m³ trở lên hoặc tổng diện tích sàn từ 1.000 m² trở lên.",
+    "nhom_II": "Có khối tích dưới 7.000 m³ hoặc tổng diện tích sàn dưới 1.000 m².",
+    "nhom_III": ""
+  },
+  {
+    "code": "GR34",
+    "ten": "Cơ sở SXCN hạng nguy hiểm cháy C",
+    "can_cu": "Điểm 21, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Có khối tích từ 15.000 m³ trở lên hoặc tổng diện tích sàn từ 2.000 m² trở lên.",
+    "nhom_II": "Có khối tích dưới 15.000 m³ hoặc tổng diện tích sàn dưới 2.000 m².",
+    "nhom_III": ""
+  },
+  {
+    "code": "GR35",
+    "ten": "Cơ sở SXCN hạng nguy hiểm cháy D, E",
+    "can_cu": "Điểm 21, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Có khối tích từ 30.000 m³ trở lên hoặc tổng diện tích sàn từ 10.000 m² trở lên.",
+    "nhom_II": "Có khối tích từ 5.000 m³ đến dưới 30.000 m³ hoặc tổng diện tích sàn từ 1.000 m² đến dưới 10.000 m².",
+    "nhom_III": "Có khối tích từ 2500m3 đến 5.000 m³ hoặc tổng diện tích sàn từ 500 m2 đến 1.000 m²."
+  },
+  {
+    "code": "GR36",
+    "ten": "Kho chứa hàng hóa nguy hiểm cháy nổ A, B, Kho chứa hàng hóa nguy hiểm cháy C",
+    "can_cu": "Điểm 22, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Có tổng diện tích sàn từ 2.000 m² trở lên.",
+    "nhom_II": "Có tổng diện tích sàn từ 200 m² đến dưới 2.000 m².",
+    "nhom_III": "Có tổng diện tích sàn dưới 200 m²."
+  },
+  {
+    "code": "GR37",
+    "ten": "Kho chứa hàng hóa nguy hiểm cháy nổ D, E",
+    "can_cu": "Điểm 22, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "",
+    "nhom_II": "Có khối tích từ 5.000 m³ trở lên hoặc tổng diện tích sàn từ 1.000 m² trở lên.",
+    "nhom_III": "Có khối tích từ 2500m3 đến 5.000 m³ hoặc tổng diện tích sàn từ 500 m2 đến 1.000 m²"
+  },
+  {
+    "code": "GR38",
+    "ten": "Nhà để xe ô tô, Nhà để xe máy, Nhà trưng bày ô tô, Nhà trưng bày xe máy",
+    "can_cu": "Điểm 23, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Có tổng diện tích sàn từ 2.000 m² trở lên.",
+    "nhom_II": "Có tổng diện tích sàn từ 500 m² đến dưới 2.000 m².",
+    "nhom_III": "Có tổng diện tích sàn từ 100 m2 tới dưới 500 m²."
+  },
+  {
+    "code": "GR39",
+    "ten": "Cảng, bến thủy nội địa, Bến cảng biển",
+    "can_cu": "Điểm 26, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Thuộc công trình từ cấp III trở lên theo quy định về xây dựng.",
+    "nhom_II": "",
+    "nhom_III": ""
+  },
+  {
+    "code": "GR40",
+    "ten": "Cảng cá",
+    "can_cu": "Điểm 26, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Loại I.",
+    "nhom_II": "Loại II.",
+    "nhom_III": ""
+  },
+  {
+    "code": "GR41",
+    "ten": "Bến xe khách, Trung tâm đăng kiểm phương tiện giao thông, Trạm dừng nghỉ",
+    "can_cu": "Điểm 27, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Có tổng diện tích sàn từ 3.000 m² trở lên.",
+    "nhom_II": "Có tổng diện tích sàn từ 500 m² đến dưới 3.000 m².",
+    "nhom_III": "Có tổng diện tích sàn dưới 500 m²."
+  },
+  {
+    "code": "GR42",
+    "ten": "Hầm đường ô tô (chiều dài từ 500 m trở lên), Hầm đường sắt (chiều dài từ 500 m trở lên), Hầm đường sắt đô thị",
+    "can_cu": "Điểm 27, 28 Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Chiều dài từ 1.000 m trở lên.",
+    "nhom_II": "Chiều dài từ 500 m đến dưới 1.000 m.",
+    "nhom_III": ""
+  },
+  {
+    "code": "GR43",
+    "ten": "Nhà ga hành khách (đường sắt), Nhà ga hàng hóa (đường sắt), Đề-pô (depot) đường sắt, Nhà ga cáp treo",
+    "can_cu": "Điểm 28, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Có tổng diện tích sàn từ 3.000 m² trở lên.",
+    "nhom_II": "Có tổng diện tích sàn từ 300 m² đến dưới 3.000 m².",
+    "nhom_III": "Có tổng diện tích sàn dưới 300 m²."
+  },
+  {
+    "code": "GR44",
+    "ten": "Cơ sở sửa chữa, bảo dưỡng phương tiện cơ giới đường bộ",
+    "can_cu": "Điểm 29, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Có tổng diện tích sàn từ 3.000 m² trở lên.",
+    "nhom_II": "Có tổng diện tích sàn từ 500 m² đến dưới 3.000 m².",
+    "nhom_III": "Có tổng diện tích sàn từ 100 m2 đến dưới 500 m²."
+  },
+  {
+    "code": "GR45",
+    "ten": "Cơ sở sửa chữa phương tiện thủy nội địa, Cơ sở sửa chữa tàu biển",
+    "can_cu": "Điểm 29, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Có tổng diện tích sàn từ 3.000 m² trở lên.",
+    "nhom_II": "Có tổng diện tích sàn từ 1.000 m² đến dưới 3.000 m².",
+    "nhom_III": "Có tổng diện sàn dưới 1000 m2"
+  },
+  {
+    "code": "GR46",
+    "ten": "Cơ sở trợ giúp xã hội",
+    "can_cu": "Điểm 31, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Có nhà cao từ 3 tầng trở lên hoặc tổng diện tích sàn từ 300 m² trở lên.",
+    "nhom_II": "",
+    "nhom_III": "Có nhà cao 2 tầng và có tổng diện tích sàn dưới 100 m2"
+  },
+  {
+    "code": "GR47",
+    "ten": "Nhà ở kết hợp sản xuất, kinh doanh",
+    "can_cu": "Điểm 32, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "",
+    "nhom_II": "",
+    "nhom_III": "Tổng diện tích phục vụ sản xuất, kinh doanh từ 50 m² trở lên."
+  },
+  {
+    "code": "GR48",
+    "ten": "Bãi chứa hàng hóa, vật tư, phế liệu cháy được",
+    "can_cu": "Điểm 33, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "",
+    "nhom_II": "",
+    "nhom_III": "Diện tích từ 500 m² trở lên."
+  },
+  {
+    "code": "GR49",
+    "ten": "Hạ tầng kỹ thuật của khu đô thị, khu nhà ở, khu công nghiệp, cụm công nghiệp, khu du lịch, khu nghiên cứu, đào tạo, khu thể dục, thể thao",
+    "can_cu": "Điểm 34, Phụ lục I, Nghị định 105/2025",
+    "nhom_I": "Từ 75 ha trở lên.",
+    "nhom_II": "Dưới 75 ha.",
+    "nhom_III": ""
+  }
+];
+
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const loaiHinhSelect = document.getElementById('loaiHinh');
+            const quyMoOptionsContainer = document.getElementById('quyMoOptionsContainer');
+            const checkBtn = document.getElementById('check-btn');
+            const introSection = document.getElementById('intro-section');
+            const resultSection = document.getElementById('result-section');
+            
+            const resultText = document.getElementById('result-text');
+            const resultCriteria = document.getElementById('result-criteria');
+            const resultLegal = document.getElementById('result-legal');
+
+            // --- HÀM CẬP NHẬT CÁC LỰA CHỌN QUY MÔ ---
+            function updateQuyMoOptions(loaiHinhCode) {
+                const selectedLoaiHinh = loaiHinhData.find(item => item.code === loaiHinhCode);
+                quyMoOptionsContainer.innerHTML = ''; // Xóa các lựa chọn cũ
+
+                if (!selectedLoaiHinh) return;
+
+                const options = [
+                    { value: 'I', text: selectedLoaiHinh.nhom_I },
+                    { value: 'II', text: selectedLoaiHinh.nhom_II },
+                    { value: 'III', text: selectedLoaiHinh.nhom_III }
+                ];
+
+                options.forEach((opt, index) => {
+                    if (opt.text) { // Chỉ tạo radio button nếu có tiêu chí
+                        const div = document.createElement('div');
+                        div.className = 'quy-mo-option';
+                        div.innerHTML = `
+                            <input type="radio" id="quyMo-${opt.value}" name="quyMo" value="${opt.value}" class="hidden" ${index === 0 ? 'checked' : ''}>
+                            <label for="quyMo-${opt.value}" class="block p-4 border-2 border-gray-200 rounded-lg cursor-pointer">
+                                <span class="font-bold text-red-600">Nhóm ${opt.value}:</span> ${opt.text}
+                            </label>
+                        `;
+                        quyMoOptionsContainer.appendChild(div);
+                    }
+                });
+            }
+
+            // --- KHỞI TẠO BAN ĐẦU ---
+            loaiHinhData.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.code;
+                option.textContent = item.ten;
+                loaiHinhSelect.appendChild(option);
+            });
+            updateQuyMoOptions(loaiHinhSelect.value); // Cập nhật quy mô cho lựa chọn đầu tiên
+
+            // --- SỰ KIỆN ---
+            loaiHinhSelect.addEventListener('change', (e) => {
+                updateQuyMoOptions(e.target.value);
+            });
+
+            checkBtn.addEventListener('click', () => {
+                const selectedLoaiHinhCode = loaiHinhSelect.value;
+                const selectedQuyMoRadio = document.querySelector('input[name="quyMo"]:checked');
+                
+                if (!selectedQuyMoRadio) {
+                    alert("Vui lòng chọn một quy mô.");
+                    return;
+                }
+
+                const selectedQuyMoValue = selectedQuyMoRadio.value;
+                const selectedLoaiHinh = loaiHinhData.find(item => item.code === selectedLoaiHinhCode);
+
+                if (!selectedLoaiHinh) return;
+
+                let phuLuc = '';
+                let tieuChi = '';
+                
+                if (selectedQuyMoValue === 'I') {
+                    phuLuc = 'Danh mục cơ sở nguy hiểm cháy nổ Nhóm 1 Phụ Lục II (Do Phòng CS PCCC và CNCH quản lý)';
+                    tieuChi = selectedLoaiHinh.nhom_I;
+                } else if (selectedQuyMoValue === 'II') {
+                    phuLuc = 'Danh mục cơ sở nguy hiểm cháy nổ Nhóm 2 Phụ Lục II (Do Phòng CS PCCC và CNCH quản lý)';
+                    tieuChi = selectedLoaiHinh.nhom_II;
+                } else {
+                    phuLuc = ' Phụ Lục I và không thuộc nhóm nguy hiểm cháy (Do Công an cấp Xã quản lý)';
+                    tieuChi = selectedLoaiHinh.nhom_III;
+                }
+                
+                resultText.textContent = phuLuc;
+                resultCriteria.textContent = tieuChi || "Không áp dụng.";
+                resultLegal.textContent = selectedLoaiHinh.can_cu;
+
+                introSection.style.display = 'none';
+                resultSection.style.display = 'block';
+            });
+        });
+    </script>
+</body>
+</html>
