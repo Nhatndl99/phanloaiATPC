@@ -19,18 +19,24 @@
         }
         .cta-button { transition: all 0.2s ease-in-out; }
         .cta-button:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        /* Style cho các lựa chọn quy mô */
-        .quy-mo-option {
+        
+        /* Style cho các lựa chọn loại hình và quy mô */
+        .selectable-option {
             transition: all 0.2s ease-in-out;
             cursor: pointer;
         }
-        .quy-mo-option:hover {
+        .selectable-option:hover {
             background-color: #fef2f2;
         }
-        .quy-mo-option input:checked + label {
+        .selectable-option input:checked + label {
             border-color: #ef4444;
             background-color: #fee2e2;
             color: #b91c1c;
+        }
+         .selectable-option label {
+            display: block;
+            width: 100%;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -45,19 +51,23 @@
                 <p class="text-gray-600 mt-4">Trả lời một vài câu hỏi đơn giản để xác định cơ sở của bạn thuộc diện quản lý nào theo quy định mới nhất.</p>
             </div>
 
-            <div class="mt-8">
+             <div class="mt-8">
                 <div class="space-y-6">
                     <div>
-                        <label for="loaiHinh" class="block text-lg font-medium text-gray-700 mb-2">1. Chọn loại hình cơ sở:</label>
-                        <select id="loaiHinh" class="block w-full p-3 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500">
-                            <!-- Options will be populated by JavaScript -->
-                        </select>
+                        <label for="loaiHinhSearch" class="block text-lg font-medium text-gray-700 mb-2">1. Tìm và chọn loại hình cơ sở:</label>
+                        <div class="relative">
+                           <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+                           <input type="search" id="loaiHinhSearch" placeholder="Gõ để tìm kiếm (ví dụ: khách sạn, trường học...)" class="block w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500">
+                        </div>
+                        <div id="loaiHinhOptionsContainer" class="mt-2 border rounded-lg p-2 max-h-60 overflow-y-auto space-y-1">
+                            <!-- Radio buttons for facility types will be populated here -->
+                        </div>
                     </div>
                     <!-- Khu vực Quy mô sẽ được điền động -->
                     <div id="quyMoSection">
                         <label class="block text-lg font-medium text-gray-700 mb-2">2. Chọn quy mô của cơ sở:</label>
                         <div id="quyMoOptionsContainer" class="space-y-2">
-                            <!-- Radio buttons will be populated by JavaScript -->
+                            <!-- Radio buttons for scale options will be populated here -->
                         </div>
                     </div>
                 </div>
@@ -87,7 +97,10 @@
                  <p class="text-gray-600 mt-2">Việc quản lý hồ sơ, phương tiện, và thực hiện báo cáo theo đúng phụ lục này có thể rất phức tạp. Hãy để chúng tôi giúp bạn!</p>
                  <a href="https://gioithieu.antoanchay.io.vn" class="mt-4 inline-block cta-button bg-red-600 text-white font-bold px-8 py-3 rounded-lg text-base hover:bg-red-700">
                      Tìm hiểu về giải pháp An Toàn PCCC
-                 </a>
+                 </a><br/>
+                      <button id="back-btn" class="cta-button bg-gray-600 text-white font-bold px-10 py-4 m-5 rounded-lg text-lg hover:bg-red-700">
+                        Quay lại
+                    </button>
              </div>
         </div>
     </div>
@@ -490,9 +503,12 @@
 
         document.addEventListener('DOMContentLoaded', function () {
 
-            const loaiHinhSelect = document.getElementById('loaiHinh');
+            const loaiHinhSearch = document.getElementById('loaiHinhSearch');
+            const loaiHinhOptionsContainer = document.getElementById('loaiHinhOptionsContainer');
             const quyMoOptionsContainer = document.getElementById('quyMoOptionsContainer');
             const checkBtn = document.getElementById('check-btn');
+            const backBtn = document.getElementById('back-btn');
+
             const introSection = document.getElementById('intro-section');
             const resultSection = document.getElementById('result-section');
             
@@ -500,10 +516,35 @@
             const resultCriteria = document.getElementById('result-criteria');
             const resultLegal = document.getElementById('result-legal');
 
-            // --- HÀM CẬP NHẬT CÁC LỰA CHỌN QUY MÔ ---
-            function updateQuyMoOptions(loaiHinhCode) {
+            function renderLoaiHinhOptions(filter = '') {
+                loaiHinhOptionsContainer.innerHTML = '';
+                const filteredData = loaiHinhData.filter(item => item.ten.toLowerCase().includes(filter.toLowerCase()));
+
+                filteredData.forEach((item, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'selectable-option';
+                    div.innerHTML = `
+                        <input type="radio" id="loaiHinh-${item.code}" name="loaiHinh" value="${item.code}" class="hidden" ${index === 0 && !filter ? 'checked' : ''}>
+                        <label for="loaiHinh-${item.code}" class="block p-3 border-2 border-gray-200 rounded-lg">
+                            ${item.ten}
+                        </label>
+                    `;
+                    loaiHinhOptionsContainer.appendChild(div);
+                });
+                
+                // Gắn lại sự kiện cho các radio button mới được tạo
+                document.querySelectorAll('input[name="loaiHinh"]').forEach(radio => {
+                    radio.addEventListener('change', (e) => updateQuyMoOptions(e.target.value));
+                });
+
+                // Tự động cập nhật quy mô cho lựa chọn đầu tiên trong danh sách lọc
+                if(filteredData.length > 0) {
+                     updateQuyMoOptions(filteredData[0].code);
+                }
+            }
+             function updateQuyMoOptions(loaiHinhCode) {
                 const selectedLoaiHinh = loaiHinhData.find(item => item.code === loaiHinhCode);
-                quyMoOptionsContainer.innerHTML = ''; // Xóa các lựa chọn cũ
+                quyMoOptionsContainer.innerHTML = ''; 
 
                 if (!selectedLoaiHinh) return;
 
@@ -514,12 +555,12 @@
                 ];
 
                 options.forEach((opt, index) => {
-                    if (opt.text) { // Chỉ tạo radio button nếu có tiêu chí
+                    if (opt.text) { 
                         const div = document.createElement('div');
-                        div.className = 'quy-mo-option';
+                        div.className = 'selectable-option';
                         div.innerHTML = `
-                            <input type="radio" id="quyMo-${opt.value}" name="quyMo" value="${opt.value}" class="hidden" ${index === 0 ? 'checked' : ''}>
-                            <label for="quyMo-${opt.value}" class="block p-4 border-2 border-gray-200 rounded-lg cursor-pointer">
+                            <input type="radio" id="quyMo-${opt.value}" name="quyMo" value="${opt.value}" class="hidden" >
+                            <label for="quyMo-${opt.value}" class="block p-4 border-2 border-gray-200 rounded-lg">
                                 <span class="font-bold text-red-600">Nhóm ${opt.value}:</span> ${opt.text}
                             </label>
                         `;
@@ -529,28 +570,28 @@
             }
 
             // --- KHỞI TẠO BAN ĐẦU ---
-            loaiHinhData.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item.code;
-                option.textContent = item.ten;
-                loaiHinhSelect.appendChild(option);
-            });
-            updateQuyMoOptions(loaiHinhSelect.value); // Cập nhật quy mô cho lựa chọn đầu tiên
-
-            // --- SỰ KIỆN ---
-            loaiHinhSelect.addEventListener('change', (e) => {
-                updateQuyMoOptions(e.target.value);
+            renderLoaiHinhOptions();
+                        // --- SỰ KIỆN ---
+            loaiHinhSearch.addEventListener('input', (e) => {
+                renderLoaiHinhOptions(e.target.value);
             });
 
             checkBtn.addEventListener('click', () => {
-                const selectedLoaiHinhCode = loaiHinhSelect.value;
+                const selectedLoaiHinhRadio = document.querySelector('input[name="loaiHinh"]:checked');
                 const selectedQuyMoRadio = document.querySelector('input[name="quyMo"]:checked');
+
+                console.log('ĐANg chạy kiểm tra')
                 
-                if (!selectedQuyMoRadio) {
+                if (!selectedLoaiHinhRadio) {
+                    alert("Vui lòng chọn một loại hình cơ sở.");
+                    return;
+                }
+                 if (!selectedQuyMoRadio) {
                     alert("Vui lòng chọn một quy mô.");
                     return;
                 }
 
+                const selectedLoaiHinhCode = selectedLoaiHinhRadio.value;
                 const selectedQuyMoValue = selectedQuyMoRadio.value;
                 const selectedLoaiHinh = loaiHinhData.find(item => item.code === selectedLoaiHinhCode);
 
@@ -576,6 +617,10 @@
 
                 introSection.style.display = 'none';
                 resultSection.style.display = 'block';
+            });
+            backBtn.addEventListener('click', () => {
+                introSection.style.display = 'block';
+                resultSection.style.display = 'none';
             });
         });
     </script>
