@@ -524,7 +524,7 @@
                     const div = document.createElement('div');
                     div.className = 'selectable-option';
                     div.innerHTML = `
-                        <input type="radio" id="loaiHinh-${item.code}" name="loaiHinh" value="${item.code}" class="hidden" ${index === 0 && !filter ? 'checked' : ''}>
+                        <input type="radio" id="loaiHinh-${item.code}" name="loaiHinh" value="${item.code}" class="hidden" '}>
                         <label for="loaiHinh-${item.code}" class="block p-3 border-2 border-gray-200 rounded-lg">
                             ${item.ten}
                         </label>
